@@ -1,53 +1,102 @@
 from django.http import Http404
-from rest_framework import generics, status
 from rest_framework.views import APIView
+from .models import K9, User
+from rest_framework import status
 from rest_framework.response import Response
-from .models import User, K9
-from .serializers import RegisterUserSerializer, K9Serializer
-from django.contrib.auth import authenticate
-
+from rest_framework.generics import CreateAPIView, RetrieveAPIView
+from rest_framework.permissions import AllowAny
+from .serializers import UserRegistrationSerializer, UserLoginSerializer, K9Serializer
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 
 # Create your views here.
 
 
-class UserCreate(generics.CreateAPIView):
-    authentication_classes = ()
-    permission_classes = ()
-    serializer_class = RegisterUserSerializer
+class UserRegistrationView(CreateAPIView):
+    serializer_class = UserRegistrationSerializer
+    permission_classes = (AllowAny,)
 
-
-class LoginView(APIView):
-    permission_classes = ()
-
-    def post(self, request,):
-        username = request.data.get("username")
-        password = request.data.get("password")
-        user = authenticate(username=username, password=password)
-        if user:
-            return Response({"token": user.auth_token.key})
-        else:
-            return Response({"error": "Wrong Credentials"}, status=status.HTTP_400_BAD_REQUEST)
-
-    def get(self, request, format=None):
-        content = {
-            'user': str(request.user),
-            'auth': str(request.auth)
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        status_code = status.HTTP_201_CREATED
+        response = {
+            'success': 'True',
+            'status code': status_code,
+            'message': 'User registered  successfully',
         }
-        return Response(content)
+
+        return Response(response, status=status_code)
+
+
+class UserLoginView(RetrieveAPIView):
+
+    permission_classes = (AllowAny,)
+    serializer_class = UserLoginSerializer
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        response = {
+            'success': 'True',
+            'status code': status.HTTP_200_OK,
+            'message': 'User logged in  successfully',
+            'token': serializer.data['token'],
+            'email': serializer.data['email']
+            }
+        status_code = status.HTTP_200_OK
+
+        return Response(response, status=status_code)
+
+
+class UserProfileView(RetrieveAPIView):
+
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
+
+    def get(self, request):
+        try:
+            user = User.objects.get(email=request.user)
+            status_code = status.HTTP_200_OK
+            response = {
+                'success': 'true',
+                'status code': status_code,
+                'message': 'User profile fetched successfully',
+                'data': [{
+                    'email': user.email,
+                    }]
+                }
+
+        except Exception as e:
+            status_code = status.HTTP_400_BAD_REQUEST
+            response = {
+                'success': 'false',
+                'status code': status.HTTP_400_BAD_REQUEST,
+                'message': 'User does not exists',
+                'error': str(e)
+                }
+        return Response(response, status=status_code)
 
 
 class K9List(APIView):
-    permission_classes = ()
+
+    permission_classes = (IsAuthenticated,)
+    authentication_class = JSONWebTokenAuthentication
 
     def get(self, request):
-        k9 = K9.objects.all()
-        serializer = K9Serializer(k9, many=True)
+        k9s = K9.objects.all()
+        serializer = K9Serializer(k9s, many=True)
         return Response(serializer.data)
 
     def post(self, request):
+        # user = User.objects.get(email=request.user)  //this line is how we handle the jwt
+        user = User.objects.get(email=request.user)
+        request.data.user_id = user.id
+
         serializer = K9Serializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
+        if serializer.is_valid() and user.is_valid():
+            serializer.save() and user.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
