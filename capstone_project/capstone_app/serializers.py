@@ -29,12 +29,12 @@ JWT_ENCODE_HANDLER = api_settings.JWT_ENCODE_HANDLER
 
 
 class UserLoginSerializer(serializers.Serializer):
-
     email = serializers.CharField(max_length=255)
     password = serializers.CharField(max_length=128, write_only=True)
     token = serializers.CharField(max_length=255, read_only=True)
 
     def validate(self, data):
+        userid = data.get('id', None)
         email = data.get("email", None)
         password = data.get("password", None)
         user = authenticate(email=email, password=password)
@@ -52,11 +52,11 @@ class UserLoginSerializer(serializers.Serializer):
             )
         return {
             'email': user.email,
-            'token': jwt_token
+            'token': jwt_token,
         }
 
 
 class K9Serializer(serializers.ModelSerializer):
     class Meta:
         model = K9
-        fields = ['id', 'name', 'breed', 'color', 'age', 'size', 'gender', 'user']
+        fields = ['id', 'name', 'breed', 'color', 'age', 'size', 'gender', 'user', 'zipcode']

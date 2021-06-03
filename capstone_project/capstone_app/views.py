@@ -43,7 +43,7 @@ class UserLoginView(RetrieveAPIView):
             'status code': status.HTTP_200_OK,
             'message': 'User logged in  successfully',
             'token': serializer.data['token'],
-            'email': serializer.data['email']
+            'email': serializer.data['email'],
             }
         status_code = status.HTTP_200_OK
 
@@ -65,6 +65,7 @@ class UserProfileView(RetrieveAPIView):
                 'message': 'User profile fetched successfully',
                 'data': [{
                     'email': user.email,
+                    'id': user.id
                     }]
                 }
 
@@ -92,11 +93,11 @@ class K9List(APIView):
     def post(self, request):
         # user = User.objects.get(email=request.user)  //this line is how we handle the jwt
         user = User.objects.get(email=request.user)
-        request.data.user_id = user.id
-
+        # request.data.user_id = user.id
         serializer = K9Serializer(data=request.data)
-        if serializer.is_valid() and user.is_valid():
-            serializer.save() and user.save()
+        print(user, serializer)
+        if serializer.is_valid():
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

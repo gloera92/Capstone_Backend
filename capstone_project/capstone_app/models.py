@@ -5,11 +5,6 @@ from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 
 
 class UserManager(BaseUserManager):
-    '''
-    creating a manager for a custom user model
-    https://docs.djangoproject.com/en/3.0/topics/auth/customizing/#writing-a-manager-for-a-custom-user-model
-    https://docs.djangoproject.com/en/3.0/topics/auth/customizing/#a-full-example
-    '''
     def create_user(self, email, password=None):
         """
         Create and return a `User` with an email, username and password.
@@ -75,3 +70,4 @@ class K9(models.Model):
     size = models.CharField(default=50, max_length=6)
     gender = models.CharField(default=50, max_length=6)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+    zipcode = models.IntegerField(default=0)
