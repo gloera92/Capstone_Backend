@@ -80,6 +80,7 @@ class UserProfileView(RetrieveAPIView):
         return Response(response, status=status_code)
 
 
+
 class K9List(APIView):
 
     permission_classes = (IsAuthenticated,)
@@ -112,7 +113,7 @@ class K9Detail(APIView):
             raise Http404
 
     def get(self, request, pk):
-        k9 = self.get_object(pk)
+        k9 = self.get_object(pk.user)
         serializer = K9Serializer(k9)
         return Response(serializer.data)
 
@@ -128,3 +129,4 @@ class K9Detail(APIView):
         k9 = self.get_object(pk)
         k9.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+

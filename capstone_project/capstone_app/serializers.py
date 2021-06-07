@@ -59,4 +59,7 @@ class UserLoginSerializer(serializers.Serializer):
 class K9Serializer(serializers.ModelSerializer):
     class Meta:
         model = K9
-        fields = ['id', 'name', 'breed', 'color', 'age', 'size', 'gender', 'user', 'zipcode']
+        fields = ['id', 'name', 'breed', 'color', 'age', 'size', 'gender', 'user', 'zipcode', 'cost']
+
+
+

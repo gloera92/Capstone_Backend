@@ -71,3 +71,7 @@ class K9(models.Model):
     gender = models.CharField(default=50, max_length=6)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     zipcode = models.IntegerField(default=0)
+    cost = models.IntegerField(default=0)
+
+
+
